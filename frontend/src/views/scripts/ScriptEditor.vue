@@ -3,94 +3,82 @@
     <div class="space-y-6">
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-2">
-          <router-link to="/scripts" class="text-gray-500 hover:text-gray-700">Scripts</router-link>
-          <span class="text-gray-400">/</span>
-          <h1 class="text-2xl font-bold">{{ isEdit ? 'Edit Script' : 'New Script' }}</h1>
+          <router-link to="/scripts" class="text-surface-500 hover:text-surface-700 dark:hover:text-surface-300">Scripts</router-link>
+          <span class="text-surface-400">/</span>
+          <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">{{ isEdit ? 'Edit Script' : 'New Script' }}</h1>
         </div>
       </div>
 
       <form @submit.prevent="handleSave" class="card space-y-6">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Script Name</label>
-          <input v-model="form.name" type="text" required class="input-field" placeholder="e.g. Summer Sale Pitch" />
+          <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1">Script Name</label>
+          <InputText v-model="form.name" required class="w-full" placeholder="e.g. Summer Sale Pitch" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Audio Source</label>
+          <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-2">Audio Source</label>
           <div class="flex gap-4">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" v-model="form.audio_type" value="tts" class="text-blue-600" />
-              <span>Text-to-Speech</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="radio" v-model="form.audio_type" value="uploaded" class="text-blue-600" />
-              <span>Pre-recorded Audio</span>
-            </label>
+            <div class="flex items-center gap-2">
+              <RadioButton v-model="form.audio_type" input-id="audio-tts" value="tts" />
+              <label for="audio-tts" class="cursor-pointer">Text-to-Speech</label>
+            </div>
+            <div class="flex items-center gap-2">
+              <RadioButton v-model="form.audio_type" input-id="audio-uploaded" value="uploaded" />
+              <label for="audio-uploaded" class="cursor-pointer">Pre-recorded Audio</label>
+            </div>
           </div>
         </div>
 
         <div v-if="form.audio_type === 'tts'" class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Language</label>
-            <select v-model="form.language" class="input-field">
-              <option value="hi-IN">Hindi</option>
-              <option value="en-IN">English (India)</option>
-              <option value="ta-IN">Tamil</option>
-              <option value="te-IN">Telugu</option>
-              <option value="bn-IN">Bengali</option>
-              <option value="mr-IN">Marathi</option>
-            </select>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1">Language</label>
+            <Select v-model="form.language" :options="languageOptions" option-label="label" option-value="value" class="w-full" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Voice</label>
-            <select v-model="form.tts_voice" class="input-field">
-              <option value="hi-IN-Wavenet-A">Wavenet A (Female)</option>
-              <option value="hi-IN-Wavenet-B">Wavenet B (Male)</option>
-              <option value="hi-IN-Wavenet-C">Wavenet C (Female)</option>
-              <option value="hi-IN-Wavenet-D">Wavenet D (Male)</option>
-            </select>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1">Voice</label>
+            <Select v-model="form.tts_voice" :options="voiceOptions" option-label="label" option-value="value" class="w-full" />
           </div>
         </div>
 
         <div v-if="form.audio_type === 'uploaded'">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Upload Audio File</label>
+          <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1">Upload Audio File</label>
           <div
-            class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+            class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
             @dragover.prevent
             @drop.prevent="handleDrop"
             @click="$refs.fileInput.click()"
           >
             <input ref="fileInput" type="file" accept=".mp3,.wav,.ogg" class="hidden" @change="handleFileSelect" />
-            <div v-if="uploading" class="text-blue-600">Uploading...</div>
-            <div v-else-if="uploadedFile" class="text-green-600">
+            <div v-if="uploading" class="text-primary-600">Uploading...</div>
+            <div v-else-if="uploadedFile" class="text-emerald-600 dark:text-emerald-400">
               <p class="font-medium">{{ uploadedFile.name }}</p>
               <p class="text-sm">{{ (uploadedFile.size / 1024).toFixed(1) }} KB</p>
             </div>
             <div v-else>
-              <p class="text-gray-500">Drag & drop audio file here or click to browse</p>
-              <p class="text-sm text-gray-400 mt-1">Supported: MP3, WAV, OGG (max 10MB)</p>
+              <p class="text-surface-500">Drag & drop audio file here or click to browse</p>
+              <p class="text-sm text-surface-400 mt-1">Supported: MP3, WAV, OGG (max 10MB)</p>
             </div>
           </div>
           <audio v-if="audioPreviewUrl" :src="audioPreviewUrl" controls class="mt-3 w-full" />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Script Content</label>
-          <textarea
+          <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1">Script Content</label>
+          <Textarea
             v-model="form.content"
             rows="6"
             required
-            class="input-field"
+            class="w-full"
             placeholder="Use {customer_name}, {business_name} for variables..."
-          ></textarea>
-          <p class="text-xs text-gray-400 mt-1">Use curly braces for variables: {'{customer_name}'}, {'{business_name}'}</p>
+          />
+          <p class="text-xs text-surface-400 mt-1">Use curly braces for variables: {'{customer_name}'}, {'{business_name}'}</p>
         </div>
 
+        <Message v-if="error" severity="error" :closable="false">{{ error }}</Message>
+
         <div class="flex justify-end gap-2">
-          <router-link to="/scripts" class="btn-secondary">Cancel</router-link>
-          <button type="submit" class="btn-primary" :disabled="saving">
-            {{ saving ? 'Saving...' : (isEdit ? 'Save Changes' : 'Create Script') }}
-          </button>
+          <Button as="router-link" to="/scripts" label="Cancel" severity="secondary" text />
+          <Button type="submit" :loading="saving" :label="isEdit ? 'Save Changes' : 'Create Script'" />
         </div>
       </form>
     </div>
@@ -100,19 +88,44 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import { useScriptsStore } from '@/stores/scripts'
 import api from '@/api/client'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
+import Select from 'primevue/select'
+import RadioButton from 'primevue/radiobutton'
+import Button from 'primevue/button'
+import Message from 'primevue/message'
 
 const route = useRoute()
 const router = useRouter()
 const scriptsStore = useScriptsStore()
+const toast = useToast()
 
 const isEdit = computed(() => !!route.params.id)
 const saving = ref(false)
 const uploading = ref(false)
 const uploadedFile = ref(null)
 const audioPreviewUrl = ref('')
+const error = ref('')
+
+const languageOptions = [
+  { label: 'Hindi', value: 'hi-IN' },
+  { label: 'English (India)', value: 'en-IN' },
+  { label: 'Tamil', value: 'ta-IN' },
+  { label: 'Telugu', value: 'te-IN' },
+  { label: 'Bengali', value: 'bn-IN' },
+  { label: 'Marathi', value: 'mr-IN' },
+]
+
+const voiceOptions = [
+  { label: 'Wavenet A (Female)', value: 'hi-IN-Wavenet-A' },
+  { label: 'Wavenet B (Male)', value: 'hi-IN-Wavenet-B' },
+  { label: 'Wavenet C (Female)', value: 'hi-IN-Wavenet-C' },
+  { label: 'Wavenet D (Male)', value: 'hi-IN-Wavenet-D' },
+]
 
 const form = reactive({
   name: '',
@@ -154,7 +167,7 @@ function handleDrop(e) {
 
 async function uploadFile(file) {
   if (file.size > 10 * 1024 * 1024) {
-    alert('File too large. Maximum 10MB.')
+    error.value = 'File too large. Maximum 10MB.'
     return
   }
   uploadedFile.value = file
@@ -163,9 +176,10 @@ async function uploadFile(file) {
 
 async function handleSave() {
   saving.value = true
+  error.value = ''
   try {
     if (isEdit.value) {
-      const updated = await scriptsStore.updateScript(route.params.id, form)
+      await scriptsStore.updateScript(route.params.id, form)
       if (uploadedFile.value) {
         await scriptsStore.uploadAudio(route.params.id, uploadedFile.value)
       }
@@ -175,9 +189,10 @@ async function handleSave() {
         await scriptsStore.uploadAudio(created.id, uploadedFile.value)
       }
     }
+    toast.add({ severity: 'success', summary: isEdit.value ? 'Script updated' : 'Script created', life: 3000 })
     router.push('/scripts')
   } catch (e) {
-    alert(e.response?.data?.detail || 'Failed to save script')
+    error.value = e.response?.data?.detail || 'Failed to save script'
   } finally {
     saving.value = false
   }
