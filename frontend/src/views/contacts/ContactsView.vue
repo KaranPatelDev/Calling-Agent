@@ -7,27 +7,26 @@
         class="flex justify-between items-center"
       >
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">Contact Lists</h1>
-          <p class="text-sm text-gray-500 mt-1">Manage your contact lists and phone numbers</p>
+          <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-0">Contact Lists</h1>
+          <p class="text-sm text-surface-500 mt-1">Manage your contact lists and phone numbers</p>
         </div>
-        <button @click="showCreate = true" class="btn-primary text-sm flex items-center gap-2">
-          <Plus :size="16" />
-          New List
-        </button>
+        <Button label="New List" @click="showCreate = true">
+          <template #icon><Plus :size="16" /></template>
+        </Button>
       </motion.div>
 
       <!-- Loading -->
       <div v-if="loading" class="grid gap-4">
         <div v-for="i in 3" :key="i" class="card">
           <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="skeleton h-5 w-40 mb-2"></div>
-              <div class="skeleton h-4 w-64 mb-2"></div>
-              <div class="skeleton h-3 w-24"></div>
+            <div class="flex-1 space-y-2">
+              <Skeleton width="10rem" height="1.25rem" />
+              <Skeleton width="16rem" height="1rem" />
+              <Skeleton width="6rem" height="0.75rem" />
             </div>
             <div class="flex gap-2">
-              <div class="skeleton h-8 w-20"></div>
-              <div class="skeleton h-8 w-20"></div>
+              <Skeleton width="5rem" height="2rem" />
+              <Skeleton width="5rem" height="2rem" />
             </div>
           </div>
         </div>
@@ -40,15 +39,14 @@
         animate="{ opacity: 1, scale: 1 }"
         class="card text-center py-12"
       >
-        <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Users :size="32" class="text-purple-600" />
+        <div class="w-16 h-16 bg-purple-100 dark:bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Users :size="32" class="text-purple-600 dark:text-purple-400" />
         </div>
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">No contact lists yet</h3>
-        <p class="text-gray-500 mb-6 max-w-sm mx-auto">Create a contact list and add phone numbers to start calling.</p>
-        <button @click="showCreate = true" class="btn-primary flex items-center gap-2 mx-auto">
-          <Plus :size="16" />
-          New List
-        </button>
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-0 mb-2">No contact lists yet</h3>
+        <p class="text-surface-500 mb-6 max-w-sm mx-auto">Create a contact list and add phone numbers to start calling.</p>
+        <Button label="New List" @click="showCreate = true">
+          <template #icon><Plus :size="16" /></template>
+        </Button>
       </motion.div>
 
       <!-- Lists -->
@@ -62,100 +60,70 @@
           class="card-hover flex items-center justify-between"
         >
           <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 flex items-center justify-center">
-              <Users :size="20" class="text-purple-600" />
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-50 dark:from-purple-500/20 dark:to-purple-500/10 flex items-center justify-center">
+              <Users :size="20" class="text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <h3 class="font-semibold text-gray-900">{{ list.name }}</h3>
-              <p class="text-sm text-gray-500">{{ list.description || 'No description' }}</p>
-              <span class="text-xs text-gray-400">{{ list.contact_count }} contacts</span>
+              <h3 class="font-semibold text-surface-900 dark:text-surface-0">{{ list.name }}</h3>
+              <p class="text-sm text-surface-500">{{ list.description || 'No description' }}</p>
+              <span class="text-xs text-surface-400">{{ list.contact_count }} contacts</span>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button @click="importList = list; showImport = true" class="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
-              <Upload :size="14" />
-              Import
-            </button>
-            <button @click="selectedList = list; showDetail = true" class="btn-ghost text-xs px-3 py-1.5 flex items-center gap-1">
-              <Eye :size="14" />
-              View
-            </button>
-            <button @click="handleDelete(list.id)" class="btn-ghost text-xs px-2 py-1.5 text-red-500 hover:text-red-700 hover:bg-red-50">
-              <Trash2 :size="14" />
-            </button>
+            <Button label="Import" size="small" severity="secondary" outlined @click="importList = list; showImport = true">
+              <template #icon><Upload :size="14" /></template>
+            </Button>
+            <Button label="View" size="small" severity="secondary" text @click="openDetail(list)">
+              <template #icon><Eye :size="14" /></template>
+            </Button>
+            <Button size="small" severity="danger" text @click="handleDelete(list)">
+              <template #icon><Trash2 :size="14" /></template>
+            </Button>
           </div>
         </motion.div>
       </div>
 
       <!-- Create Modal -->
-      <transition name="modal">
-        <div v-if="showCreate" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial="{ opacity: 0, scale: 0.95 }"
-            animate="{ opacity: 1, scale: 1 }"
-            class="card w-full max-w-md"
-          >
-            <h2 class="text-xl font-bold text-gray-900 mb-4">New Contact List</h2>
-            <form @submit.prevent="handleCreate" class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">List Name</label>
-                <input v-model="createForm.name" type="text" required class="input-field" placeholder="e.g. Mumbai Leads" />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-                <textarea v-model="createForm.description" rows="2" class="input-field" placeholder="Optional description"></textarea>
-              </div>
-              <div class="flex justify-end gap-2 pt-2">
-                <button type="button" @click="showCreate = false" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-primary">Create</button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      </transition>
+      <Dialog :visible="showCreate" modal header="New Contact List" :style="{ width: '28rem' }" @update:visible="showCreate = $event">
+        <form @submit.prevent="handleCreate" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1.5">List Name</label>
+            <InputText v-model="createForm.name" required class="w-full" placeholder="e.g. Mumbai Leads" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1.5">Description</label>
+            <Textarea v-model="createForm.description" rows="2" class="w-full" placeholder="Optional description" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <Button type="button" label="Cancel" severity="secondary" text @click="showCreate = false" />
+            <Button type="submit" label="Create" />
+          </div>
+        </form>
+      </Dialog>
 
       <!-- Detail Modal -->
-      <transition name="modal">
-        <div v-if="showDetail && selectedList" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial="{ opacity: 0, scale: 0.95 }"
-            animate="{ opacity: 1, scale: 1 }"
-            class="card w-full max-w-2xl max-h-[80vh] overflow-y-auto"
-          >
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-bold text-gray-900">{{ selectedList.name }}</h2>
-              <button @click="showDetail = false" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <X :size="20" />
-              </button>
-            </div>
-            <div v-if="detailLoading" class="space-y-3">
-              <div v-for="i in 5" :key="i" class="skeleton h-10 w-full"></div>
-            </div>
-            <div v-else-if="detailContacts.length === 0" class="text-center py-8 text-gray-500">No contacts in this list</div>
-            <table v-else class="w-full text-sm">
-              <thead class="table-header">
-                <tr>
-                  <th class="px-4 py-2">Phone</th>
-                  <th class="px-4 py-2">Name</th>
-                  <th class="px-4 py-2">Email</th>
-                  <th class="px-4 py-2">DND</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-50">
-                <tr v-for="c in detailContacts" :key="c.id" class="hover:bg-gray-50/50">
-                  <td class="px-4 py-2.5 font-medium">{{ c.phone }}</td>
-                  <td class="px-4 py-2.5">{{ c.name || '-' }}</td>
-                  <td class="px-4 py-2.5 text-gray-500">{{ c.email || '-' }}</td>
-                  <td class="px-4 py-2.5">
-                    <span v-if="c.dnd_registered" class="badge-danger">DND</span>
-                    <span v-else class="badge-success">OK</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </motion.div>
+      <Dialog :visible="showDetail" modal :header="selectedList?.name" :style="{ width: '48rem' }" @update:visible="showDetail = $event">
+        <DataTable v-if="!detailLoading" :value="detailContacts" :rows="10" paginator responsive-layout="scroll">
+          <template #empty>
+            <div class="text-center py-8 text-surface-500">No contacts in this list</div>
+          </template>
+          <Column field="phone" header="Phone" />
+          <Column field="name" header="Name">
+            <template #body="{ data }">{{ data.name || '-' }}</template>
+          </Column>
+          <Column field="email" header="Email">
+            <template #body="{ data }">{{ data.email || '-' }}</template>
+          </Column>
+          <Column header="DND">
+            <template #body="{ data }">
+              <Tag :value="data.dnd_registered ? 'DND' : 'OK'" :severity="data.dnd_registered ? 'danger' : 'success'" />
+            </template>
+          </Column>
+        </DataTable>
+        <div v-else class="space-y-3">
+          <Skeleton v-for="i in 5" :key="i" height="2.5rem" />
         </div>
-      </transition>
+      </Dialog>
 
       <!-- Import Modal -->
       <ContactImportModal v-if="showImport && importList" :listId="importList.id" @close="showImport = false; importList = null" @imported="onImported" />
@@ -165,14 +133,27 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { motion } from 'motion-v'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import ContactImportModal from './ContactImportModal.vue'
 import { useContactsStore } from '@/stores/contacts'
-import { Plus, Upload, Users, Eye, Trash2, X } from '@lucide/vue'
+import { Plus, Upload, Users, Eye, Trash2 } from '@lucide/vue'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Tag from 'primevue/tag'
+import Skeleton from 'primevue/skeleton'
 
 const contactsStore = useContactsStore()
-const { lists, loading } = contactsStore
+const { lists, loading } = storeToRefs(contactsStore)
+const confirm = useConfirm()
+const toast = useToast()
 
 const showCreate = ref(false)
 const showDetail = ref(false)
@@ -189,20 +170,35 @@ async function handleCreate() {
   await contactsStore.createList(createForm)
   showCreate.value = false
   Object.assign(createForm, { name: '', description: '' })
+  toast.add({ severity: 'success', summary: 'List created', life: 3000 })
 }
 
-async function handleDelete(id) {
-  if (confirm('Delete this contact list and all its contacts?')) {
-    await contactsStore.deleteList(id)
+async function openDetail(list) {
+  selectedList.value = list
+  showDetail.value = true
+  detailLoading.value = true
+  try {
+    const data = await contactsStore.getListContacts(list.id)
+    detailContacts.value = data.items || []
+  } finally {
+    detailLoading.value = false
   }
+}
+
+function handleDelete(list) {
+  confirm.require({
+    message: `Delete "${list.name}" and all its contacts?`,
+    header: 'Delete contact list',
+    acceptProps: { severity: 'danger', label: 'Delete' },
+    rejectProps: { severity: 'secondary', outlined: true, label: 'Cancel' },
+    accept: async () => {
+      await contactsStore.deleteList(list.id)
+      toast.add({ severity: 'success', summary: 'List deleted', life: 3000 })
+    },
+  })
 }
 
 function onImported() {
   contactsStore.fetchLists()
 }
 </script>
-
-<style scoped>
-.modal-enter-active, .modal-leave-active { transition: all 0.25s ease; }
-.modal-enter-from, .modal-leave-to { opacity: 0; }
-</style>

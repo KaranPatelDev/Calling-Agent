@@ -1,16 +1,16 @@
 <template>
   <div class="space-y-3">
     <div class="flex items-center justify-between">
-      <span class="text-sm text-gray-500">{{ rows.length }} row{{ rows.length !== 1 ? 's' : '' }}</span>
-      <button v-if="allowAdd" @click="addRow" class="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1">
+      <span class="text-sm text-surface-500">{{ rows.length }} row{{ rows.length !== 1 ? 's' : '' }}</span>
+      <button v-if="allowAdd" @click="addRow" class="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
         <Plus :size="14" />
         Add Row
       </button>
     </div>
 
-    <div class="overflow-x-auto border border-gray-200 rounded-xl">
+    <div class="overflow-x-auto border border-surface-200 dark:border-surface-700 rounded-xl">
       <table class="w-full text-sm">
-        <thead class="bg-gray-50/80 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <thead class="bg-surface-50/80 dark:bg-surface-800/80 text-left text-xs font-semibold text-surface-500 uppercase tracking-wider">
           <tr>
             <th v-if="allowDelete" class="w-10 px-3 py-2.5"></th>
             <th v-for="col in columns" :key="col.key" class="px-3 py-2.5" :class="col.width || ''">
@@ -19,10 +19,10 @@
             </th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-for="(row, idx) in rows" :key="idx" class="hover:bg-gray-50/50 transition-colors">
+        <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+          <tr v-for="(row, idx) in rows" :key="idx" class="hover:bg-surface-50/50 dark:hover:bg-surface-800/50 transition-colors">
             <td v-if="allowDelete" class="px-3 py-2">
-              <button @click="removeRow(idx)" class="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all">
+              <button @click="removeRow(idx)" class="p-1 rounded-lg text-surface-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all">
                 <X :size="14" />
               </button>
             </td>
@@ -31,8 +31,8 @@
                 v-if="col.type === 'select'"
                 :value="row[col.key]"
                 @input="updateCell(idx, col.key, $event.target.value)"
-                class="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                :class="{ 'border-red-300 bg-red-50': !row._valid && col.required }"
+                class="w-full px-2.5 py-1.5 border border-surface-200 dark:border-surface-600 rounded-lg text-sm bg-surface-0 dark:bg-surface-800 text-surface-900 dark:text-surface-0 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                :class="{ 'border-red-300 bg-red-50 dark:bg-red-500/10': !row._valid && col.required }"
               >
                 <option v-for="opt in col.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
@@ -41,8 +41,8 @@
                 :value="row[col.key]"
                 @input="updateCell(idx, col.key, $event.target.value)"
                 rows="2"
-                class="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-y transition-all"
-                :class="{ 'border-red-300 bg-red-50': !row._valid && col.required }"
+                class="w-full px-2.5 py-1.5 border border-surface-200 dark:border-surface-600 rounded-lg text-sm bg-surface-0 dark:bg-surface-800 text-surface-900 dark:text-surface-0 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 resize-y transition-all"
+                :class="{ 'border-red-300 bg-red-50 dark:bg-red-500/10': !row._valid && col.required }"
                 :placeholder="col.placeholder || ''"
               ></textarea>
               <input
@@ -50,8 +50,8 @@
                 type="text"
                 :value="row[col.key]"
                 @input="updateCell(idx, col.key, $event.target.value)"
-                class="w-full px-2.5 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                :class="{ 'border-red-300 bg-red-50': !row._valid && col.required }"
+                class="w-full px-2.5 py-1.5 border border-surface-200 dark:border-surface-600 rounded-lg text-sm bg-surface-0 dark:bg-surface-800 text-surface-900 dark:text-surface-0 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                :class="{ 'border-red-300 bg-red-50 dark:bg-red-500/10': !row._valid && col.required }"
                 :placeholder="col.placeholder || ''"
               />
               <p v-if="!row._valid && row._errors?.length" class="text-xs text-red-500 mt-1">
@@ -63,7 +63,7 @@
       </table>
     </div>
 
-    <div v-if="rows.length === 0" class="text-center py-8 text-gray-400 text-sm">
+    <div v-if="rows.length === 0" class="text-center py-8 text-surface-400 text-sm">
       {{ emptyMessage }}
     </div>
   </div>

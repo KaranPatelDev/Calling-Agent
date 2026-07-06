@@ -1,101 +1,93 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="card w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-      <h2 class="text-xl font-bold mb-4">Import Scripts</h2>
-
-      <!-- Step 1: Upload -->
-      <div v-if="step === 1" class="space-y-4">
-        <div
-          class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-          @dragover.prevent
-          @drop.prevent="handleDrop"
-          @click="$refs.fileInput.click()"
-        >
-          <input ref="fileInput" type="file" accept=".xlsx,.xls,.pdf" class="hidden" @change="handleFileSelect" />
-          <div class="text-3xl mb-2">{{ fileIcon }}</div>
-          <p class="text-gray-700 font-medium">{{ fileName || 'Drag & drop or click to browse' }}</p>
-          <p class="text-sm text-gray-400 mt-1">Supports Excel (.xlsx, .xls) and PDF</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-          <p class="font-medium mb-2">Expected format for Excel:</p>
-          <ul class="list-disc list-inside space-y-1">
-            <li><strong>name</strong> — Script name</li>
-            <li><strong>content</strong> — Script text/message</li>
-            <li><strong>language</strong> — (optional) hi-IN, en-IN, etc.</li>
-          </ul>
-          <p class="mt-3 text-gray-500">For PDF: the entire text content becomes one script. You can edit the name after parsing.</p>
-        </div>
+  <Dialog :visible="true" modal header="Import Scripts" :style="{ width: '48rem' }" :closable="step < 4" @update:visible="$emit('close')">
+    <!-- Step 1: Upload -->
+    <div v-if="step === 1" class="space-y-4">
+      <div
+        class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-8 text-center hover:border-primary-400 transition-colors cursor-pointer"
+        @dragover.prevent
+        @drop.prevent="handleDrop"
+        @click="$refs.fileInput.click()"
+      >
+        <input ref="fileInput" type="file" accept=".xlsx,.xls,.pdf" class="hidden" @change="handleFileSelect" />
+        <FileIcon :size="32" class="mx-auto text-surface-400 mb-2" />
+        <p class="text-surface-700 dark:text-surface-200 font-medium">{{ fileName || 'Drag & drop or click to browse' }}</p>
+        <p class="text-sm text-surface-400 mt-1">Supports Excel (.xlsx, .xls) and PDF</p>
       </div>
 
-      <!-- Step 2: Parsing -->
-      <div v-else-if="step === 2" class="text-center py-8">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-gray-500">Parsing file...</p>
-      </div>
-
-      <!-- Step 3: Review & Edit -->
-      <div v-else-if="step === 3" class="space-y-4">
-        <div class="flex items-center justify-between">
-          <p class="text-sm text-gray-600">
-            <span class="font-medium">{{ parsedScripts.length }}</span> script{{ parsedScripts.length !== 1 ? 's' : '' }} found.
-            Edit below before importing.
-          </p>
-          <span class="text-xs px-2 py-1 rounded-full" :class="sourceBadgeClass">
-            {{ source === 'pdf' ? 'PDF' : 'Excel' }}
-          </span>
-        </div>
-
-        <EditableTable
-          :columns="scriptColumns"
-          :rows="parsedScripts"
-          :newRowTemplate="newScriptTemplate"
-          @update:rows="parsedScripts = $event"
-          emptyMessage="No scripts to import."
-        />
-      </div>
-
-      <!-- Step 4: Importing -->
-      <div v-else-if="step === 4" class="text-center py-8">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-gray-500">Importing {{ parsedScripts.length }} script{{ parsedScripts.length !== 1 ? 's' : '' }}...</p>
-      </div>
-
-      <!-- Step 5: Done -->
-      <div v-else-if="step === 5" class="text-center py-8">
-        <div class="text-4xl mb-4">&#10003;</div>
-        <h3 class="text-lg font-semibold text-green-700 mb-2">Import Complete</h3>
-        <p class="text-gray-500 mb-4">{{ importedCount }} script{{ importedCount !== 1 ? 's' : '' }} created successfully.</p>
-      </div>
-
-      <!-- Error -->
-      <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
-        <p class="text-red-700 text-sm">{{ error }}</p>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-2 mt-6">
-        <button v-if="step === 1" @click="$emit('close')" class="btn-secondary">Cancel</button>
-        <button v-if="step === 1 && file" @click="parseFile" class="btn-primary" :disabled="parsing">
-          {{ parsing ? 'Parsing...' : 'Parse File' }}
-        </button>
-
-        <button v-if="step === 3" @click="step = 1; parsedScripts = []; file = null" class="btn-secondary">Back</button>
-        <button v-if="step === 3" @click="$emit('close')" class="btn-secondary">Cancel</button>
-        <button v-if="step === 3" @click="importScripts" class="btn-primary" :disabled="parsedScripts.length === 0">
-          Import {{ parsedScripts.length }} Script{{ parsedScripts.length !== 1 ? 's' : '' }}
-        </button>
-
-        <button v-if="step === 5" @click="$emit('close'); $emit('imported')" class="btn-primary">Done</button>
+      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 text-sm text-surface-600 dark:text-surface-300">
+        <p class="font-medium mb-2">Expected format for Excel:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li><strong>name</strong> — Script name</li>
+          <li><strong>content</strong> — Script text/message</li>
+          <li><strong>language</strong> — (optional) hi-IN, en-IN, etc.</li>
+        </ul>
+        <p class="mt-3 text-surface-500">For PDF: the entire text content becomes one script. You can edit the name after parsing.</p>
       </div>
     </div>
-  </div>
+
+    <!-- Step 2: Parsing -->
+    <div v-else-if="step === 2" class="text-center py-8">
+      <ProgressSpinner style="width: 2.5rem; height: 2.5rem" stroke-width="4" />
+      <p class="text-surface-500 mt-4">Parsing file...</p>
+    </div>
+
+    <!-- Step 3: Review & Edit -->
+    <div v-else-if="step === 3" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-surface-600 dark:text-surface-300">
+          <span class="font-medium">{{ parsedScripts.length }}</span> script{{ parsedScripts.length !== 1 ? 's' : '' }} found.
+          Edit below before importing.
+        </p>
+        <Tag :value="source === 'pdf' ? 'PDF' : 'Excel'" :severity="source === 'pdf' ? 'danger' : 'success'" />
+      </div>
+
+      <EditableTable
+        :columns="scriptColumns"
+        :rows="parsedScripts"
+        :newRowTemplate="newScriptTemplate"
+        @update:rows="parsedScripts = $event"
+        emptyMessage="No scripts to import."
+      />
+    </div>
+
+    <!-- Step 4: Importing -->
+    <div v-else-if="step === 4" class="text-center py-8">
+      <ProgressSpinner style="width: 2.5rem; height: 2.5rem" stroke-width="4" />
+      <p class="text-surface-500 mt-4">Importing {{ parsedScripts.length }} script{{ parsedScripts.length !== 1 ? 's' : '' }}...</p>
+    </div>
+
+    <!-- Step 5: Done -->
+    <div v-else-if="step === 5" class="text-center py-8">
+      <CheckCircle2 :size="48" class="mx-auto text-emerald-500 mb-4" />
+      <h3 class="text-lg font-semibold text-emerald-700 dark:text-emerald-400 mb-2">Import Complete</h3>
+      <p class="text-surface-500 mb-4">{{ importedCount }} script{{ importedCount !== 1 ? 's' : '' }} created successfully.</p>
+    </div>
+
+    <Message v-if="error" severity="error" :closable="false" class="mt-4">{{ error }}</Message>
+
+    <template #footer>
+      <Button v-if="step === 1" label="Cancel" severity="secondary" text @click="$emit('close')" />
+      <Button v-if="step === 1 && file" :label="parsing ? 'Parsing...' : 'Parse File'" :loading="parsing" @click="parseFile" />
+
+      <Button v-if="step === 3" label="Back" severity="secondary" text @click="step = 1; parsedScripts = []; file = null" />
+      <Button v-if="step === 3" label="Cancel" severity="secondary" text @click="$emit('close')" />
+      <Button v-if="step === 3" :label="`Import ${parsedScripts.length} Script${parsedScripts.length !== 1 ? 's' : ''}`" :disabled="parsedScripts.length === 0" @click="importScripts" />
+
+      <Button v-if="step === 5" label="Done" @click="$emit('close'); $emit('imported')" />
+    </template>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useScriptsStore } from '@/stores/scripts'
 import EditableTable from '@/components/common/EditableTable.vue'
+import { FileText as FileIcon, CheckCircle2 } from '@lucide/vue'
+import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import Tag from 'primevue/tag'
+import Message from 'primevue/message'
+import ProgressSpinner from 'primevue/progressspinner'
 
 const emit = defineEmits(['close', 'imported'])
 const scriptsStore = useScriptsStore()
@@ -109,13 +101,6 @@ const source = ref('')
 const importedCount = ref(0)
 
 const fileName = computed(() => file.value?.name || '')
-const fileIcon = computed(() => {
-  if (!file.value) return '&#128196;'
-  return file.value.name.endsWith('.pdf') ? '&#128196;' : '&#128202;'
-})
-const sourceBadgeClass = computed(() =>
-  source.value === 'pdf' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-)
 
 const scriptColumns = [
   { key: 'name', label: 'Name', required: true, placeholder: 'Script name', width: 'w-48' },

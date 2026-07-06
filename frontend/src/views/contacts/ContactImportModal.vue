@@ -1,114 +1,108 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="card w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-      <h2 class="text-xl font-bold mb-4">Import Contacts</h2>
-
-      <!-- Step 1: Upload -->
-      <div v-if="step === 1" class="space-y-4">
-        <div
-          class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-          @dragover.prevent
-          @drop.prevent="handleDrop"
-          @click="$refs.fileInput.click()"
-        >
-          <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv,.pdf" class="hidden" @change="handleFileSelect" />
-          <div class="text-3xl mb-2">&#128206;</div>
-          <p class="text-gray-700 font-medium">{{ fileName || 'Drag & drop or click to browse' }}</p>
-          <p class="text-sm text-gray-400 mt-1">Supports CSV, Excel (.xlsx, .xls), and PDF</p>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-          <p class="font-medium mb-2">Expected columns for CSV/Excel:</p>
-          <ul class="list-disc list-inside space-y-1">
-            <li><strong>phone</strong> (required) — Indian mobile number</li>
-            <li><strong>name</strong> (optional)</li>
-            <li><strong>email</strong> (optional)</li>
-            <li><strong>company</strong> (optional)</li>
-          </ul>
-          <p class="mt-3 text-gray-500">For PDF: phone numbers are automatically detected from the text. You can edit all fields before importing.</p>
-        </div>
+  <Dialog :visible="true" modal header="Import Contacts" :style="{ width: '48rem' }" :closable="step < 4" @update:visible="$emit('close')">
+    <!-- Step 1: Upload -->
+    <div v-if="step === 1" class="space-y-4">
+      <div
+        class="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-8 text-center hover:border-primary-400 transition-colors cursor-pointer"
+        @dragover.prevent
+        @drop.prevent="handleDrop"
+        @click="$refs.fileInput.click()"
+      >
+        <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv,.pdf" class="hidden" @change="handleFileSelect" />
+        <FileText :size="32" class="mx-auto text-surface-400 mb-2" />
+        <p class="text-surface-700 dark:text-surface-200 font-medium">{{ fileName || 'Drag & drop or click to browse' }}</p>
+        <p class="text-sm text-surface-400 mt-1">Supports CSV, Excel (.xlsx, .xls), and PDF</p>
       </div>
 
-      <!-- Step 2: Parsing -->
-      <div v-else-if="step === 2" class="text-center py-8">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-gray-500">Parsing file...</p>
-      </div>
-
-      <!-- Step 3: Review & Edit -->
-      <div v-else-if="step === 3" class="space-y-4">
-        <div class="flex items-center justify-between">
-          <p class="text-sm text-gray-600">
-            <span class="font-medium">{{ parsedContacts.length }}</span> contact{{ parsedContacts.length !== 1 ? 's' : '' }} found.
-            Edit below before importing.
-          </p>
-          <div class="flex items-center gap-2 text-xs">
-            <span class="px-2 py-1 rounded-full bg-green-100 text-green-700">{{ validCount }} valid</span>
-            <span v-if="invalidCount > 0" class="px-2 py-1 rounded-full bg-red-100 text-red-700">{{ invalidCount }} invalid</span>
-          </div>
-        </div>
-
-        <EditableTable
-          :columns="contactColumns"
-          :rows="parsedContacts"
-          :newRowTemplate="newContactTemplate"
-          @update:rows="parsedContacts = $event"
-          emptyMessage="No contacts to import."
-        />
-      </div>
-
-      <!-- Step 4: Importing -->
-      <div v-else-if="step === 4" class="text-center py-8">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p class="text-gray-500">Importing contacts...</p>
-      </div>
-
-      <!-- Step 5: Done -->
-      <div v-else-if="step === 5" class="space-y-4">
-        <div class="text-center py-4">
-          <div class="text-4xl mb-4">&#10003;</div>
-          <h3 class="text-lg font-semibold text-green-700 mb-2">Import Complete</h3>
-        </div>
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div class="bg-green-50 rounded p-3">
-            <p class="text-green-600">Imported</p>
-            <p class="text-xl font-bold text-green-700">{{ importResult.imported }}</p>
-          </div>
-          <div v-if="importResult.duplicates > 0" class="bg-yellow-50 rounded p-3">
-            <p class="text-yellow-600">Duplicates Skipped</p>
-            <p class="text-xl font-bold text-yellow-700">{{ importResult.duplicates }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Error -->
-      <div v-if="error" class="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
-        <p class="text-red-700 text-sm">{{ error }}</p>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex justify-end gap-2 mt-6">
-        <button v-if="step === 1" @click="$emit('close')" class="btn-secondary">Cancel</button>
-        <button v-if="step === 1 && file" @click="parseFile" class="btn-primary" :disabled="parsing">
-          {{ parsing ? 'Parsing...' : 'Parse File' }}
-        </button>
-
-        <button v-if="step === 3" @click="step = 1; parsedContacts = []; file = null" class="btn-secondary">Back</button>
-        <button v-if="step === 3" @click="$emit('close')" class="btn-secondary">Cancel</button>
-        <button v-if="step === 3" @click="importContacts" class="btn-primary" :disabled="validCount === 0">
-          Import {{ validCount }} Contact{{ validCount !== 1 ? 's' : '' }}
-        </button>
-
-        <button v-if="step === 5" @click="$emit('close'); $emit('imported')" class="btn-primary">Done</button>
+      <div class="bg-surface-50 dark:bg-surface-800 rounded-lg p-4 text-sm text-surface-600 dark:text-surface-300">
+        <p class="font-medium mb-2">Expected columns for CSV/Excel:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li><strong>phone</strong> (required) — Indian mobile number</li>
+          <li><strong>name</strong> (optional)</li>
+          <li><strong>email</strong> (optional)</li>
+          <li><strong>company</strong> (optional)</li>
+        </ul>
+        <p class="mt-3 text-surface-500">For PDF: phone numbers are automatically detected from the text. You can edit all fields before importing.</p>
       </div>
     </div>
-  </div>
+
+    <!-- Step 2: Parsing -->
+    <div v-else-if="step === 2" class="text-center py-8">
+      <ProgressSpinner style="width: 2.5rem; height: 2.5rem" stroke-width="4" />
+      <p class="text-surface-500 mt-4">Parsing file...</p>
+    </div>
+
+    <!-- Step 3: Review & Edit -->
+    <div v-else-if="step === 3" class="space-y-4">
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-surface-600 dark:text-surface-300">
+          <span class="font-medium">{{ parsedContacts.length }}</span> contact{{ parsedContacts.length !== 1 ? 's' : '' }} found.
+          Edit below before importing.
+        </p>
+        <div class="flex items-center gap-2">
+          <Tag :value="`${validCount} valid`" severity="success" />
+          <Tag v-if="invalidCount > 0" :value="`${invalidCount} invalid`" severity="danger" />
+        </div>
+      </div>
+
+      <EditableTable
+        :columns="contactColumns"
+        :rows="parsedContacts"
+        :newRowTemplate="newContactTemplate"
+        @update:rows="parsedContacts = $event"
+        emptyMessage="No contacts to import."
+      />
+    </div>
+
+    <!-- Step 4: Importing -->
+    <div v-else-if="step === 4" class="text-center py-8">
+      <ProgressSpinner style="width: 2.5rem; height: 2.5rem" stroke-width="4" />
+      <p class="text-surface-500 mt-4">Importing contacts...</p>
+    </div>
+
+    <!-- Step 5: Done -->
+    <div v-else-if="step === 5" class="space-y-4">
+      <div class="text-center py-4">
+        <CheckCircle2 :size="48" class="mx-auto text-emerald-500 mb-4" />
+        <h3 class="text-lg font-semibold text-emerald-700 dark:text-emerald-400 mb-2">Import Complete</h3>
+      </div>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div class="bg-emerald-50 dark:bg-emerald-500/10 rounded p-3">
+          <p class="text-emerald-600 dark:text-emerald-400">Imported</p>
+          <p class="text-xl font-bold text-emerald-700 dark:text-emerald-300">{{ importResult.imported }}</p>
+        </div>
+        <div v-if="importResult.duplicates > 0" class="bg-amber-50 dark:bg-amber-500/10 rounded p-3">
+          <p class="text-amber-600 dark:text-amber-400">Duplicates Skipped</p>
+          <p class="text-xl font-bold text-amber-700 dark:text-amber-300">{{ importResult.duplicates }}</p>
+        </div>
+      </div>
+    </div>
+
+    <Message v-if="error" severity="error" :closable="false" class="mt-4">{{ error }}</Message>
+
+    <template #footer>
+      <Button v-if="step === 1" label="Cancel" severity="secondary" text @click="$emit('close')" />
+      <Button v-if="step === 1 && file" :label="parsing ? 'Parsing...' : 'Parse File'" :loading="parsing" @click="parseFile" />
+
+      <Button v-if="step === 3" label="Back" severity="secondary" text @click="step = 1; parsedContacts = []; file = null" />
+      <Button v-if="step === 3" label="Cancel" severity="secondary" text @click="$emit('close')" />
+      <Button v-if="step === 3" :label="`Import ${validCount} Contact${validCount !== 1 ? 's' : ''}`" :disabled="validCount === 0" @click="importContacts" />
+
+      <Button v-if="step === 5" label="Done" @click="$emit('close'); $emit('imported')" />
+    </template>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useContactsStore } from '@/stores/contacts'
 import EditableTable from '@/components/common/EditableTable.vue'
+import { FileText, CheckCircle2 } from '@lucide/vue'
+import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import Tag from 'primevue/tag'
+import Message from 'primevue/message'
+import ProgressSpinner from 'primevue/progressspinner'
 
 const props = defineProps({
   listId: { type: String, required: true },
