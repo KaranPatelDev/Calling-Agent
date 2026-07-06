@@ -1,6 +1,6 @@
 <template>
   <aside
-    class="fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-gray-100 z-40 transition-transform duration-300"
+    class="fixed left-0 top-16 bottom-0 w-64 bg-surface-0 dark:bg-surface-900 border-r border-surface-100 dark:border-surface-700 z-40 transition-transform duration-300 lg:translate-x-0"
     :class="{ '-translate-x-full': !open, 'translate-x-0': open }"
   >
     <nav class="p-4 space-y-1">
@@ -8,8 +8,8 @@
         v-for="item in navItems"
         :key="item.to"
         :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition-all duration-200 group"
-        active-class="!bg-brand-50 !text-brand-600 font-semibold shadow-sm"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-surface-600 dark:text-surface-300 hover:bg-primary-50 hover:text-primary-600 dark:hover:bg-primary-500/10 dark:hover:text-primary-400 transition-all duration-200 group"
+        active-class="!bg-primary-50 !text-primary-600 dark:!bg-primary-500/10 dark:!text-primary-400 font-semibold shadow-sm"
       >
         <component :is="item.icon" :size="20" class="transition-transform duration-200 group-hover:scale-110" />
         <span class="text-sm">{{ item.label }}</span>

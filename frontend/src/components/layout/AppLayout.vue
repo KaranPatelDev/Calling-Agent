@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50/50">
+  <div class="min-h-screen bg-surface-50 dark:bg-surface-950">
     <AppHeader @toggle-sidebar="sidebarOpen = !sidebarOpen" />
     <AppSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
     <main class="pt-16 lg:pl-64 min-h-screen">
