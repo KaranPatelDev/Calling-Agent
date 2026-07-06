@@ -33,7 +33,7 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-surface-700 dark:text-surface-200 mb-1.5">Password</label>
-            <Password v-model="form.password" required :minlength="6" toggle-mask class="w-full" input-class="w-full" placeholder="Min. 6 characters" />
+            <Password v-model="form.password" required :minlength="6" :feedback="false" toggle-mask class="w-full" input-class="w-full" placeholder="Min. 6 characters" />
           </div>
 
           <transition name="fade">
