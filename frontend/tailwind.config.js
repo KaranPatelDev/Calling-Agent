@@ -1,5 +1,8 @@
+import PrimeUI from 'tailwindcss-primeui'
+
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: ['selector', '.app-dark'],
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -58,5 +61,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [PrimeUI],
 }

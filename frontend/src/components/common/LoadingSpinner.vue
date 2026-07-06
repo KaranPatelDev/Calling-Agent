@@ -1,24 +1,22 @@
 <template>
-  <div class="flex items-center justify-center" :class="sizeClass">
-    <svg class="animate-spin" :class="sizeClass" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-    </svg>
-    <span v-if="text" class="ml-2 text-gray-500">{{ text }}</span>
+  <div class="flex items-center justify-center gap-2">
+    <ProgressSpinner :style="{ width: sizePx, height: sizePx }" stroke-width="4" />
+    <span v-if="text" class="text-surface-500">{{ text }}</span>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import ProgressSpinner from 'primevue/progressspinner'
 
 const props = defineProps({
   size: { type: String, default: 'md' },
   text: { type: String, default: '' },
 })
 
-const sizeClass = computed(() => ({
-  sm: 'w-4 h-4',
-  md: 'w-8 h-8',
-  lg: 'w-12 h-12',
+const sizePx = computed(() => ({
+  sm: '1rem',
+  md: '2rem',
+  lg: '3rem',
 }[props.size]))
 </script>

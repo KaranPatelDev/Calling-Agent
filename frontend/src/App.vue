@@ -5,11 +5,15 @@
         <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
+    <Toast />
+    <ConfirmDialog />
   </div>
 </template>
 
 <script setup>
 import { onMounted } from 'vue'
+import Toast from 'primevue/toast'
+import ConfirmDialog from 'primevue/confirmdialog'
 
 onMounted(() => {
   const loader = document.getElementById('app-loader')

@@ -26,6 +26,8 @@ export default defineConfig({
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           'axios': ['axios'],
           'motion': ['motion-v'],
+          'primevue': ['primevue', '@primeuix/themes'],
+          'chart': ['chart.js'],
         },
       },
     },

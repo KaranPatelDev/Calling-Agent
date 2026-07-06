@@ -1,36 +1,33 @@
 <template>
-  <span :class="badgeClass">{{ label }}</span>
+  <Tag :value="label" :severity="severity" rounded />
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import Tag from 'primevue/tag'
 
 const props = defineProps({
   status: { type: String, required: true },
 })
 
 const statusConfig = {
-  completed: { label: 'Completed', class: 'bg-green-100 text-green-800' },
-  successful: { label: 'Successful', class: 'bg-green-100 text-green-800' },
-  running: { label: 'Running', class: 'bg-blue-100 text-blue-800' },
-  in_progress: { label: 'In Progress', class: 'bg-blue-100 text-blue-800' },
-  'in-progress': { label: 'In Progress', class: 'bg-blue-100 text-blue-800' },
-  dialing: { label: 'Dialing', class: 'bg-yellow-100 text-yellow-800' },
-  ringing: { label: 'Ringing', class: 'bg-yellow-100 text-yellow-800' },
-  queued: { label: 'Queued', class: 'bg-gray-100 text-gray-800' },
-  paused: { label: 'Paused', class: 'bg-orange-100 text-orange-800' },
-  draft: { label: 'Draft', class: 'bg-gray-100 text-gray-600' },
-  scheduled: { label: 'Scheduled', class: 'bg-purple-100 text-purple-800' },
-  failed: { label: 'Failed', class: 'bg-red-100 text-red-800' },
-  'no-answer': { label: 'No Answer', class: 'bg-orange-100 text-orange-800' },
-  busy: { label: 'Busy', class: 'bg-yellow-100 text-yellow-800' },
-  cancelled: { label: 'Cancelled', class: 'bg-gray-100 text-gray-600' },
+  completed: { label: 'Completed', severity: 'success' },
+  successful: { label: 'Successful', severity: 'success' },
+  running: { label: 'Running', severity: 'info' },
+  in_progress: { label: 'In Progress', severity: 'info' },
+  'in-progress': { label: 'In Progress', severity: 'info' },
+  dialing: { label: 'Dialing', severity: 'warn' },
+  ringing: { label: 'Ringing', severity: 'warn' },
+  queued: { label: 'Queued', severity: 'secondary' },
+  paused: { label: 'Paused', severity: 'warn' },
+  draft: { label: 'Draft', severity: 'secondary' },
+  scheduled: { label: 'Scheduled', severity: 'contrast' },
+  failed: { label: 'Failed', severity: 'danger' },
+  'no-answer': { label: 'No Answer', severity: 'warn' },
+  busy: { label: 'Busy', severity: 'warn' },
+  cancelled: { label: 'Cancelled', severity: 'secondary' },
 }
 
 const label = computed(() => statusConfig[props.status]?.label || props.status)
-const badgeClass = computed(() => {
-  const base = 'px-2 py-1 rounded-full text-xs font-medium'
-  const cfg = statusConfig[props.status]
-  return cfg ? `${base} ${cfg.class}` : `${base} bg-gray-100 text-gray-600`
-})
+const severity = computed(() => statusConfig[props.status]?.severity || 'secondary')
 </script>
