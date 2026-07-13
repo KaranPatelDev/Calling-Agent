@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+// ponytail: empty-string fallback means relative paths (e.g. "/api/calls"), which is what
+// the Vercel rewrite proxy (vercel.json) relies on when VITE_API_URL isn't set in production.
+const BASE_URL = import.meta.env.VITE_API_URL || "";
 
 function getApiKey() {
   return localStorage.getItem("apiKey") || "";
