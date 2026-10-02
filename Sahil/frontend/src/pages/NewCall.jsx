@@ -4,12 +4,15 @@ import { api } from "../api.js";
 import AudienceToggle from "../components/AudienceToggle.jsx";
 import RecipientsEditor from "../components/RecipientsEditor.jsx";
 import ScriptEditor from "../components/ScriptEditor.jsx";
+import ScriptPicker from "../components/ScriptPicker.jsx";
+import SpeedControl from "../components/SpeedControl.jsx";
 import { useAudienceScript } from "../hooks/useAudienceScript.js";
 
 export default function NewCall() {
   const [recipients, setRecipients] = useState([{ name: "", phone: "", organization: "" }]);
   const [scriptText, setScriptText] = useState("");
   const { audience, setAudience } = useAudienceScript(setScriptText);
+  const [speechRate, setSpeechRate] = useState("");
   const [status, setStatus] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -23,7 +26,13 @@ export default function NewCall() {
     setSubmitting(true);
     setStatus("Placing call(s)...");
     try {
-      const created = await api.createCalls({ recipients: valid, script_text: scriptText, audience, scheduled_at: null });
+      const created = await api.createCalls({
+        recipients: valid,
+        script_text: scriptText,
+        audience,
+        scheduled_at: null,
+        speech_rate: speechRate === "" ? null : Number(speechRate),
+      });
       setStatus(`Placed ${created.length} call(s) — check the Dashboard for live status.`);
       setRecipients([{ name: "", phone: "", organization: "" }]);
       setScriptText("");
@@ -48,7 +57,11 @@ export default function NewCall() {
 
         <RecipientsEditor recipients={recipients} setRecipients={setRecipients} />
 
+        <ScriptPicker onChange={setScriptText} />
+
         <ScriptEditor value={scriptText} onChange={setScriptText} />
+
+        <SpeedControl value={speechRate} onChange={setSpeechRate} />
 
         <div className="row">
           <button type="submit" disabled={submitting}>

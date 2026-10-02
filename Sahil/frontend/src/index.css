@@ -17,6 +17,15 @@
   --info-bg: #dbeafe;
   --gray-bg: #f1f2f6;
   --sidebar-bg: #0a0e1a;
+
+  /* chart palette — validated categorical/status sets, see dataviz skill */
+  --chart-series-1: #2a78d6; /* buyers */
+  --chart-series-2: #eb6834; /* sellers */
+  --chart-series-good: #008300; /* completed */
+  --chart-series-warn: #eda100; /* no answer */
+  --chart-series-bad: #e34948; /* not placed */
+  --chart-ink-muted: #898781;
+  --chart-gridline: #e1e0d9;
 }
 
 * {
@@ -219,7 +228,8 @@ form.card,
 }
 
 input,
-textarea {
+textarea,
+select {
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -230,7 +240,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -318,6 +329,44 @@ button:disabled {
   background: var(--gray-bg);
 }
 
+.select-download {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 13px;
+  padding: 0.6rem 2.3rem 0.6rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.select-download:hover:not(:disabled) {
+  background-color: var(--gray-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+.select-download:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.select-download:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .btn-sm {
   padding: 0.35rem 0.7rem;
   font-size: 0.8rem;
@@ -372,15 +421,20 @@ button:disabled {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  overflow: auto;
+  max-height: 520px;
 }
 
 table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
 }
 
 thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   text-align: left;
   padding: 0.75rem 1.1rem;
   font-size: 0.76rem;
@@ -446,9 +500,24 @@ tbody tr:hover {
   color: var(--danger);
 }
 
+.badge-no_answer {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
 .badge-cancelled {
   background: var(--gray-bg);
   color: var(--muted);
+}
+
+.badge-cut_off {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.badge-missed {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .status {
@@ -864,4 +933,180 @@ tbody tr:hover {
 .landing .closing-cta p {
   color: #b7bfd6;
   margin: 0 0 2rem;
+}
+
+/* ---------- Charts (Dashboard analytics) ---------- */
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.chart-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.chart-header .chart-title {
+  margin-bottom: 0;
+}
+
+.stat-sublabel {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+/* Buyer/Seller horizontal bars */
+
+.bar-row-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.bar-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 70px 1fr 2.5rem;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bar-row-label {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.bar-row-track {
+  background: var(--gray-bg);
+  border-radius: 6px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.bar-row-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.bar-row-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Trend chart (grouped bars over time) */
+
+.trend-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 140px;
+  border-bottom: 1px solid var(--chart-gridline);
+  padding-bottom: 4px;
+}
+
+.trend-bar-group {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  min-width: 6px;
+  cursor: default;
+}
+
+.trend-bar-stack {
+  width: 100%;
+  max-width: 22px;
+  height: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-start;
+  gap: 2px;
+}
+
+.trend-bar-segment {
+  width: 100%;
+  border-radius: 2px;
+  min-height: 3px;
+}
+
+.trend-bar-label {
+  position: absolute;
+  bottom: -1.3rem;
+  font-size: 0.65rem;
+  color: var(--chart-ink-muted);
+  white-space: nowrap;
+}
+
+/* Legend + tooltip (shared) */
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.75rem;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.chart-legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.chart-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  z-index: 5;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.trend-tooltip {
+  bottom: calc(100% + 10px);
+}
+
+.chart-tooltip strong {
+  display: block;
+  margin-bottom: 0.2rem;
 }
