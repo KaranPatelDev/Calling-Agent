@@ -1,10 +1,27 @@
+import re
 import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 Audience = Literal["buyer", "seller"]
+
+
+def normalize_phone(raw: str) -> str:
+    """Accepts any human-written Indian number format (spaces, dashes, leading 0, with/without
+    +91) and normalizes it to E.164 so Plivo can dial it."""
+    raw = raw.strip()
+    has_plus = raw.startswith("+")
+    digits = re.sub(r"\D", "", raw)
+    if not digits:
+        return raw
+    if has_plus:
+        return f"+{digits}"
+    digits = digits.lstrip("0")  # drop a domestic trunk-prefix zero (landlines/STD codes)
+    if digits.startswith("91") and len(digits) > 10:
+        return f"+{digits}"
+    return f"+91{digits}"
 
 
 class Recipient(BaseModel):
@@ -12,12 +29,21 @@ class Recipient(BaseModel):
     phone: str
     organization: str | None = None
 
+    @field_validator("phone")
+    @classmethod
+    def _normalize_phone(cls, v: str) -> str:
+        return normalize_phone(v)
+
 
 class CreateCallsRequest(BaseModel):
     recipients: list[Recipient]
     script_text: str
     audience: Audience
     scheduled_at: datetime | None = None
+    # Bounds are enforced here, not just in the UI: this value is interpolated straight into
+    # <prosody rate="{rate}%"> for Plivo/Polly, so an out-of-range value (e.g. 500) makes the
+    # provider reject the whole SSML document and the call plays no audio at all.
+    speech_rate: int | None = Field(default=None, ge=40, le=150)
 
 
 class CallOut(BaseModel):
@@ -31,6 +57,11 @@ class CallOut(BaseModel):
     status: str
     provider_call_id: str | None
     error_message: str | None
+    speech_rate: int | None
+    is_retry: bool
+    retry_call_id: uuid.UUID | None
+    retry_scheduled_at: datetime | None = None
+    retry_status: str | None = None
     created_at: datetime
 
     class Config:
@@ -42,10 +73,47 @@ class ParsedRecipient(BaseModel):
     phone: str
     organization: str | None = None
 
+    @field_validator("phone")
+    @classmethod
+    def _normalize_phone(cls, v: str) -> str:
+        return normalize_phone(v)
+
 
 class ScriptSettings(BaseModel):
     buyer_script: str | None = None
     seller_script: str | None = None
+    speech_rate: int = Field(default=85, ge=40, le=150)
+    auto_callback_enabled: bool = True
+
+    class Config:
+        from_attributes = True
+
+
+class InboundCallOut(BaseModel):
+    id: uuid.UUID
+    from_number: str
+    matched_name: str | None
+    matched_organization: str | None
+    status: str
+    duration_seconds: int | None
+    missed: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ScriptTemplateIn(BaseModel):
+    name: str
+    script_text: str
+
+
+class ScriptTemplateOut(BaseModel):
+    id: uuid.UUID
+    name: str
+    script_text: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

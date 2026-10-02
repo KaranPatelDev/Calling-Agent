@@ -22,5 +22,11 @@ def place_call(call_id, phone_number: str) -> str:
         answer_method="POST",
         hangup_url=f"{base}/voice/hangup/{call_id}",
         hangup_method="POST",
+        machine_detection="true",
+        machine_detection_url=f"{base}/voice/machine-detection/{call_id}",
+        # ponytail: bumped from Plivo's 5000ms default — real calls showed false-positive machine
+        # detection on human pickups (likely Hindi speech patterns confusing the English-tuned
+        # heuristic); more analysis time may reduce that. Revisit if still inaccurate at 10s.
+        machine_detection_time="10000",
     )
     return response["request_uuid"]
